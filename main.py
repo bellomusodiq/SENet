@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .models import DenseNet
+from .models import ConvNet, SENet
 
 CUDA = torch.cuda.is_available()
 
