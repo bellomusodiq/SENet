@@ -3,11 +3,18 @@ import torch
 CUDA = torch.cuda.is_available()
 
 
-def epoch_train(model, num_epochs, epoch, data_loader, loss_fn, optimizer):
+def epoch_train(
+    model,
+    num_epochs,
+    epoch,
+    data_loader,
+    loss_fn,
+    optimizer,
+    train_losses,
+    train_accuracy,
+):
     CUDA = torch.cuda.is_available()
     model.train()
-    if epoch % 5 == 0:
-        optimizer.param_groups[0]["lr"] *= 0.5
     sum_loss = 0
     sum_accuracy = 0
     iteration = 0
@@ -29,9 +36,6 @@ def epoch_train(model, num_epochs, epoch, data_loader, loss_fn, optimizer):
         optimizer.step()
         iteration += 1
         total_count += len(images)
-        epoch_loss = sum_loss / iteration
-        epoch_accuracy = sum_accuracy / total_count
-
         if i % 10 == 0:
             print(
                 "Epoch {}/{}, Iteration: {}/{}, Training loss: {:.3f}, Accuracy: {:.3f}".format(
@@ -39,14 +43,17 @@ def epoch_train(model, num_epochs, epoch, data_loader, loss_fn, optimizer):
                     num_epochs,
                     i,
                     len(data_loader),
-                    epoch_loss,
-                    epoch_accuracy,
+                    sum_loss / iteration,
+                    sum_accuracy / total_count,
                 )
             )
-    return epoch_loss, epoch_accuracy
+    train_losses.append(sum_loss / iteration)
+    train_accuracy.append(sum_accuracy / total_count)
 
 
-def epoch_test(model, num_epochs, epoch, data_loader, loss_fn):
+def epoch_test(
+    model, num_epochs, epoch, data_loader, loss_fn, test_losses, test_accuracy
+):
     CUDA = torch.cuda.is_available()
     model.eval()
     with torch.no_grad():
@@ -68,17 +75,15 @@ def epoch_test(model, num_epochs, epoch, data_loader, loss_fn):
             sum_loss += loss.item() * len(targets)
             iteration += 1
             total_count += len(images)
-            epoch_loss = sum_loss / iteration
-            epoch_accuracy = sum_accuracy / total_count
-
             print(
                 "Epoch {}/{}, Iteration: {}/{}, Test loss: {:.3f}, Accuracy: {:.3f}".format(
                     epoch + 1,
                     num_epochs,
                     i,
                     len(data_loader),
-                    epoch_loss,
-                    epoch_accuracy,
+                    sum_loss / iteration,
+                    sum_accuracy / total_count,
                 )
             )
-        return epoch_loss, epoch_accuracy
+        test_losses.append(sum_loss / iteration)
+        test_accuracy.append(sum_accuracy / total_count)
